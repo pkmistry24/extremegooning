@@ -479,10 +479,6 @@
         }
 
         document.getElementById('gate-btn').addEventListener('click', checkPassword);
-        document.getElementById('gate-btn').addEventListener('touchend', function(e) {
-            e.preventDefault();
-            checkPassword();
-        });
         document.getElementById('gate-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') checkPassword();
         });
