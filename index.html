@@ -433,6 +433,55 @@
 </head>
 <body>
 
+<div id="password-gate" style="
+    position:fixed;inset:0;background:#0a0a0a;z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:24px;
+">
+    <div style="
+        background:#141414;border:1px solid #2a2a2a;border-top:3px solid #e31937;
+        padding:40px 32px;width:100%;max-width:400px;text-align:center;
+    ">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:6px;color:#fff;text-shadow:0 0 40px rgba(227,25,55,0.4);">WALL OF SHAME</div>
+        <div style="font-size:0.7rem;letter-spacing:4px;color:#e31937;text-transform:uppercase;margin:8px 0 32px;">Members Only</div>
+        <input id="gate-input" type="password" placeholder="Password" autocomplete="off" style="
+            width:100%;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;
+            font-family:'Oswald',sans-serif;font-size:1rem;padding:14px;
+            outline:none;margin-bottom:10px;border-radius:0;-webkit-appearance:none;
+            text-align:center;letter-spacing:3px;
+        ">
+        <div id="gate-error" style="color:#e31937;font-size:0.7rem;letter-spacing:2px;min-height:16px;margin-bottom:10px;"></div>
+        <button onclick="checkPassword()" style="
+            width:100%;background:#e31937;color:#fff;border:none;
+            font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:4px;
+            padding:14px;cursor:pointer;
+        ">ENTER</button>
+    </div>
+</div>
+
+<script>
+    function checkPassword() {
+        const val = document.getElementById('gate-input').value;
+        if (val === 'Gooning4TheChampionship') {
+            document.getElementById('password-gate').style.display = 'none';
+            sessionStorage.setItem('wos_auth', '1');
+        } else {
+            document.getElementById('gate-error').textContent = 'Wrong password. Try again.';
+            document.getElementById('gate-input').value = '';
+            document.getElementById('gate-input').focus();
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        if (sessionStorage.getItem('wos_auth') === '1') {
+            document.getElementById('password-gate').style.display = 'none';
+        } else {
+            document.getElementById('gate-input').focus();
+        }
+    });
+    document.getElementById('gate-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkPassword();
+    });
+</script>
+
 <div class="stripe"></div>
 
 <div class="container">
