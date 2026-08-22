@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "extremegooning-roast-proxy",
+  "main": "roast-worker.js",
+  "compatibility_date": "2026-08-01",
+  "kv_namespaces": [
+    { "binding": "ROAST_LIMITS", "id": "3f2d2fbc73e04e1085341db5c472ac70" }
+  ],
+  "ratelimits": [
+    {
+      "name": "ROAST_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 }
+    }
+  ]
+}
