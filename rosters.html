@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Team Rosters | Full Lineups</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-panel: #141414;
+            --bg-card: #1c1c1c;
+            --accent-red: #e31937;
+            --accent-yellow: #ffd700;
+            --accent-dim: #7a0f1e;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --text-muted: #444444;
+            --border-dark: #2a2a2a;
+            --glow-red: rgba(227, 25, 55, 0.35);
+            --glow-gold: rgba(255, 215, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Oswald', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .stripe {
+            height: 12px;
+            background-image: repeating-linear-gradient(90deg, #fff 0px, #fff 12px, #000 12px, #000 24px);
+        }
+
+        .container { max-width: 860px; margin: 0 auto; padding: 36px 16px 56px; }
+
+        .header { text-align: center; margin-bottom: 32px; }
+
+        .header::after {
+            content: '';
+            display: block;
+            margin: 20px auto 0;
+            width: 100px;
+            height: 3px;
+            background: var(--accent-red);
+            box-shadow: 0 0 16px var(--glow-red);
+        }
+
+        .title-main {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.6rem, 12vw, 5.5rem);
+            letter-spacing: clamp(4px, 2vw, 10px);
+            color: var(--text-primary);
+            text-shadow: 0 0 60px var(--glow-red), 0 0 120px var(--accent-dim);
+            line-height: 1;
+        }
+
+        .title-sub {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: clamp(0.65rem, 2.5vw, 1rem);
+            letter-spacing: clamp(6px, 3vw, 14px);
+            color: var(--accent-red);
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .title-tagline {
+            font-size: clamp(0.65rem, 2vw, 0.85rem);
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-bottom: 1px solid var(--border-dark);
+            padding-bottom: 2px;
+        }
+
+        .nav-links a:hover { color: var(--accent-red); border-color: var(--accent-red); }
+
+        .status-box { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+        .status-box p { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; }
+        .status-box.error p { color: var(--accent-red); }
+
+        .team-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-top: 3px solid var(--accent-red);
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .team-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+        }
+
+        .team-card-title-row { display: flex; align-items: center; gap: 10px; }
+
+        .team-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .team-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 1px; }
+        .team-card-sub { font-size: 0.62rem; letter-spacing: 1.5px; color: var(--text-secondary); text-transform: uppercase; margin-top: 2px; }
+
+        .team-card-toggle {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .team-card.open .team-card-toggle { transform: rotate(180deg); }
+
+        .team-card-body { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-dark); }
+        .team-card.open .team-card-body { display: block; }
+
+        .roster-group-label {
+            font-size: 0.62rem;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin: 14px 0 6px;
+        }
+
+        .roster-group-label:first-child { margin-top: 0; }
+
+        .roster-row {
+            display: grid;
+            grid-template-columns: 44px 1fr auto auto;
+            gap: 8px;
+            align-items: center;
+            padding: 9px 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            margin-bottom: 3px;
+        }
+
+        .roster-slot {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            color: var(--accent-red);
+            text-align: center;
+        }
+
+        .roster-row.bench .roster-slot { color: var(--text-muted); }
+
+        .roster-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; letter-spacing: 0.5px; }
+
+        .roster-pos {
+            font-size: 0.65rem;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            text-align: right;
+        }
+
+        .roster-drafted {
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .footer { text-align: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border-dark); }
+        .footer-attr { font-size: 0.65rem; letter-spacing: 3px; color: var(--text-muted); text-transform: uppercase; }
+
+        @media (min-width: 600px) {
+            .container { padding: 48px 24px 64px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="password-gate" style="
+    position:fixed;inset:0;background:#0a0a0a;z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:24px;
+">
+    <div style="
+        background:#141414;border:1px solid #2a2a2a;border-top:3px solid #e31937;
+        padding:40px 32px;width:100%;max-width:400px;text-align:center;
+    ">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:5px;color:#fff;text-shadow:0 0 40px rgba(227,25,55,0.4);">TEAM ROSTERS</div>
+        <div style="font-size:0.7rem;letter-spacing:4px;color:#e31937;text-transform:uppercase;margin:8px 0 32px;">Members Only</div>
+        <input id="gate-input" type="password" placeholder="Password" autocomplete="off" style="
+            width:100%;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;
+            font-family:'Oswald',sans-serif;font-size:1rem;padding:14px;
+            outline:none;margin-bottom:10px;border-radius:0;-webkit-appearance:none;
+            text-align:center;letter-spacing:3px;
+        ">
+        <div id="gate-error" style="color:#e31937;font-size:0.7rem;letter-spacing:2px;min-height:16px;margin-bottom:10px;"></div>
+        <button id="gate-btn" style="
+            width:100%;background:#e31937;color:#fff;border:none;
+            font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:4px;
+            padding:18px;cursor:pointer;min-height:56px;
+            -webkit-appearance:none;border-radius:0;touch-action:manipulation;
+        ">ENTER</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        function checkPassword() {
+            var val = document.getElementById('gate-input').value;
+            if (val === 'Gooning4TheChampionship') {
+                document.getElementById('password-gate').style.display = 'none';
+                try { sessionStorage.setItem('wos_auth', '1'); } catch(e) {}
+            } else {
+                document.getElementById('gate-error').textContent = 'Wrong password. Try again.';
+                document.getElementById('gate-input').value = '';
+            }
+        }
+        var authed = false;
+        try { authed = sessionStorage.getItem('wos_auth') === '1'; } catch(e) {}
+        if (authed) document.getElementById('password-gate').style.display = 'none';
+        document.getElementById('gate-btn').addEventListener('click', checkPassword);
+        document.getElementById('gate-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+    })();
+</script>
+
+<div class="stripe"></div>
+
+<div class="container">
+    <div class="nav-links">
+        <a href="index.html">&larr; Wall of Shame</a>
+        <a href="draft.html">Draft Board</a>
+        <a href="draft-analyzer.html">Draft Grades</a>
+    </div>
+
+    <header class="header">
+        <div class="title-main">ROSTERS</div>
+        <div class="title-sub">Full Team Lineups</div>
+        <div class="title-tagline" id="league-tagline">Loading league&hellip;</div>
+    </header>
+
+    <div id="content">
+        <div class="status-box" id="status">
+            <p>Pulling current rosters from Sleeper&hellip;</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p class="footer-attr">Team Rosters &mdash; Powered by the Sleeper API</p>
+    </footer>
+</div>
+
+<div class="stripe"></div>
+
+<script>
+    const LEAGUE_ID = '1388232394384883712';
+    const API = 'https://api.sleeper.app/v1';
+
+    const contentEl = document.getElementById('content');
+    const taglineEl = document.getElementById('league-tagline');
+
+    function showError(msg) {
+        contentEl.innerHTML = `<div class="status-box error"><p>${msg}</p></div>`;
+    }
+
+    async function fetchJSON(path) {
+        const res = await fetch(`${API}${path}`);
+        if (!res.ok) throw new Error(`Request failed: ${path}`);
+        return res.json();
+    }
+
+    function playerLabel(pid, players) {
+        if (!pid) return { name: 'Empty', pos: '' };
+        const p = players[pid];
+        if (!p) return { name: pid, pos: '' };
+        if (p.position === 'DEF' || p.fantasy_positions && p.fantasy_positions[0] === 'DEF') {
+            return { name: `${p.first_name} ${p.last_name}`.trim(), pos: 'DEF' };
+        }
+        return { name: p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim(), pos: p.position || '' };
+    }
+
+    async function load() {
+        try {
+            const league = await fetchJSON(`/league/${LEAGUE_ID}`);
+            taglineEl.textContent = `${league.name} · ${league.season} Season`;
+            const rosterPositions = league.roster_positions.filter(p => p !== 'BN' && p !== 'IR' && p !== 'TAXI');
+
+            const drafts = await fetchJSON(`/league/${LEAGUE_ID}/drafts`);
+            const [rosters, users, players, picks] = await Promise.all([
+                fetchJSON(`/league/${LEAGUE_ID}/rosters`),
+                fetchJSON(`/league/${LEAGUE_ID}/users`),
+                fetchJSON(`/players/nfl`),
+                drafts.length ? fetchJSON(`/draft/${drafts[0].draft_id}/picks`) : Promise.resolve([])
+            ]);
+
+            if (!rosters.length) { showError('No rosters found for this league yet.'); return; }
+
+            const draftRoundMap = {};
+            picks.forEach(p => { draftRoundMap[p.player_id] = p.round; });
+
+            function draftedLabel(pid) {
+                const round = draftRoundMap[pid];
+                return round ? `Rd ${round}` : 'FA/Waiver';
+            }
+
+            const userMap = {};
+            users.forEach(u => {
+                userMap[u.user_id] = {
+                    team: (u.metadata && u.metadata.team_name) || u.display_name,
+                    owner: u.display_name,
+                    avatar: u.avatar ? `https://sleepercdn.com/avatars/thumbs/${u.avatar}` : null
+                };
+            });
+
+            rosters.sort((a, b) => {
+                const nameA = (userMap[a.owner_id] || {}).team || '';
+                const nameB = (userMap[b.owner_id] || {}).team || '';
+                return nameA.localeCompare(nameB);
+            });
+
+            const cardsHtml = rosters.map((r, i) => {
+                const u = userMap[r.owner_id] || { team: 'Unknown', owner: '' };
+                const starters = r.starters || [];
+                const allPlayers = r.players || [];
+                const starterSet = new Set(starters.filter(s => s && s !== '0'));
+                const bench = allPlayers.filter(p => !starterSet.has(p));
+
+                const starterRows = starters.map((pid, idx) => {
+                    const slot = rosterPositions[idx] || 'FLEX';
+                    const info = playerLabel(pid, players);
+                    return `
+                        <div class="roster-row">
+                            <div class="roster-slot">${slot}</div>
+                            <div class="roster-name">${info.name}</div>
+                            <div class="roster-pos">${info.pos}</div>
+                            <div class="roster-drafted">${draftedLabel(pid)}</div>
+                        </div>`;
+                }).join('');
+
+                const benchRows = bench.map(pid => {
+                    const info = playerLabel(pid, players);
+                    return `
+                        <div class="roster-row bench">
+                            <div class="roster-slot">BN</div>
+                            <div class="roster-name">${info.name}</div>
+                            <div class="roster-pos">${info.pos}</div>
+                            <div class="roster-drafted">${draftedLabel(pid)}</div>
+                        </div>`;
+                }).join('');
+
+                return `
+                    <div class="team-card" id="roster-card-${i}">
+                        <div class="team-card-head" onclick="document.getElementById('roster-card-${i}').classList.toggle('open')">
+                            <div class="team-card-title-row">
+                                <img class="team-avatar" src="${u.avatar || 'https://sleepercdn.com/images/v2/icons/player_default.webp'}" alt="" loading="lazy">
+                                <div>
+                                    <div class="team-card-title">${u.team}</div>
+                                    <div class="team-card-sub">${u.owner && u.owner !== u.team ? u.owner + ' · ' : ''}${allPlayers.length} players &middot; ${r.settings.wins}-${r.settings.losses}${r.settings.ties ? '-' + r.settings.ties : ''}</div>
+                                </div>
+                            </div>
+                            <div class="team-card-toggle">&#9660;</div>
+                        </div>
+                        <div class="team-card-body">
+                            <div class="roster-group-label">Starting Lineup</div>
+                            ${starterRows}
+                            ${bench.length ? `<div class="roster-group-label">Bench</div>${benchRows}` : ''}
+                        </div>
+                    </div>`;
+            }).join('');
+
+            contentEl.innerHTML = cardsHtml;
+        } catch (err) {
+            console.error(err);
+            showError('Could not load rosters. Check the league ID or try again later.');
+        }
+    }
+
+    load();
+</script>
+</body>
+</html>

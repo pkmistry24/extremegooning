@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Draft Analyzer | Team Grades</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-panel: #141414;
+            --bg-card: #1c1c1c;
+            --accent-red: #e31937;
+            --accent-yellow: #ffd700;
+            --accent-green: #2ecc71;
+            --accent-dim: #7a0f1e;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --text-muted: #444444;
+            --border-dark: #2a2a2a;
+            --glow-red: rgba(227, 25, 55, 0.35);
+            --glow-gold: rgba(255, 215, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Oswald', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .stripe {
+            height: 12px;
+            background-image: repeating-linear-gradient(90deg, #fff 0px, #fff 12px, #000 12px, #000 24px);
+        }
+
+        .container { max-width: 860px; margin: 0 auto; padding: 36px 16px 56px; }
+
+        .header { text-align: center; margin-bottom: 32px; }
+
+        .header::after {
+            content: '';
+            display: block;
+            margin: 20px auto 0;
+            width: 100px;
+            height: 3px;
+            background: var(--accent-red);
+            box-shadow: 0 0 16px var(--glow-red);
+        }
+
+        .title-main {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.6rem, 12vw, 5.5rem);
+            letter-spacing: clamp(4px, 2vw, 10px);
+            color: var(--text-primary);
+            text-shadow: 0 0 60px var(--glow-red), 0 0 120px var(--accent-dim);
+            line-height: 1;
+        }
+
+        .title-sub {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: clamp(0.65rem, 2.5vw, 1rem);
+            letter-spacing: clamp(6px, 3vw, 14px);
+            color: var(--accent-red);
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .title-tagline {
+            font-size: clamp(0.65rem, 2vw, 0.85rem);
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-bottom: 1px solid var(--border-dark);
+            padding-bottom: 2px;
+        }
+
+        .nav-links a:hover { color: var(--accent-red); border-color: var(--accent-red); }
+
+        .status-box { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+        .status-box p { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; }
+        .status-box.error p { color: var(--accent-red); }
+
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 4px;
+            color: var(--accent-red);
+            margin: 32px 0 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-dark);
+        }
+
+        .section-title:first-child { margin-top: 0; }
+
+        /* leaderboard rows */
+        .grade-row {
+            display: grid;
+            grid-template-columns: 40px 32px 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-left: 3px solid transparent;
+            margin-bottom: 3px;
+        }
+
+        .grade-rank {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            color: var(--text-muted);
+        }
+
+        .team-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+        }
+
+        .team-card-title-row { display: flex; align-items: center; gap: 10px; }
+
+        .grade-team { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px; }
+        .grade-owner { font-size: 0.62rem; letter-spacing: 1.5px; color: var(--text-secondary); text-transform: uppercase; margin-top: 2px; }
+
+        .grade-value {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .grade-badge {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            width: 48px;
+            text-align: center;
+            padding: 6px 0;
+        }
+
+        .badge-A { color: var(--accent-green); }
+        .badge-B { color: var(--accent-yellow); }
+        .badge-C { color: var(--text-secondary); }
+        .badge-D { color: #e88a3a; }
+        .badge-F { color: var(--accent-red); }
+
+        /* highlight cards */
+        .highlight-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .highlight-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-top: 3px solid var(--accent-green);
+            padding: 16px;
+        }
+
+        .highlight-card.reach { border-top-color: var(--accent-red); }
+
+        .highlight-label {
+            font-size: 0.6rem;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .highlight-player {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+        }
+
+        .highlight-meta {
+            font-size: 0.65rem;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+
+        /* team cards */
+        .team-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            padding: 16px;
+            margin-bottom: 10px;
+        }
+
+        .team-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .team-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 1px; }
+        .team-card-sub { font-size: 0.62rem; letter-spacing: 1.5px; color: var(--text-secondary); text-transform: uppercase; margin-top: 2px; }
+
+        .team-card-body {
+            display: none;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-dark);
+        }
+
+        .team-card.open .team-card-body { display: block; }
+
+        .pos-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .pos-bar-label { width: 32px; flex-shrink: 0; }
+        .pos-bar-track { flex: 1; height: 10px; background: var(--bg-card); position: relative; }
+        .pos-bar-fill { height: 100%; background: var(--accent-red); }
+        .pos-bar-count { width: 20px; text-align: right; color: var(--text-muted); }
+
+        .best-worst-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .bw-box { background: var(--bg-card); border: 1px solid var(--border-dark); padding: 10px; }
+        .bw-label { font-size: 0.55rem; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
+        .bw-player { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; margin-top: 4px; }
+        .bw-meta { font-size: 0.6rem; color: var(--text-secondary); margin-top: 2px; }
+
+        .footer { text-align: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border-dark); }
+        .footer-attr { font-size: 0.65rem; letter-spacing: 3px; color: var(--text-muted); text-transform: uppercase; }
+        .footer-note { font-size: 0.62rem; letter-spacing: 1px; color: var(--text-muted); margin-top: 8px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+        @media (min-width: 600px) {
+            .container { padding: 48px 24px 64px; }
+        }
+
+        @media (max-width: 480px) {
+            .highlight-grid, .best-worst-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="password-gate" style="
+    position:fixed;inset:0;background:#0a0a0a;z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:24px;
+">
+    <div style="
+        background:#141414;border:1px solid #2a2a2a;border-top:3px solid #e31937;
+        padding:40px 32px;width:100%;max-width:400px;text-align:center;
+    ">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:5px;color:#fff;text-shadow:0 0 40px rgba(227,25,55,0.4);">DRAFT ANALYZER</div>
+        <div style="font-size:0.7rem;letter-spacing:4px;color:#e31937;text-transform:uppercase;margin:8px 0 32px;">Members Only</div>
+        <input id="gate-input" type="password" placeholder="Password" autocomplete="off" style="
+            width:100%;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;
+            font-family:'Oswald',sans-serif;font-size:1rem;padding:14px;
+            outline:none;margin-bottom:10px;border-radius:0;-webkit-appearance:none;
+            text-align:center;letter-spacing:3px;
+        ">
+        <div id="gate-error" style="color:#e31937;font-size:0.7rem;letter-spacing:2px;min-height:16px;margin-bottom:10px;"></div>
+        <button id="gate-btn" style="
+            width:100%;background:#e31937;color:#fff;border:none;
+            font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:4px;
+            padding:18px;cursor:pointer;min-height:56px;
+            -webkit-appearance:none;border-radius:0;touch-action:manipulation;
+        ">ENTER</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        function checkPassword() {
+            var val = document.getElementById('gate-input').value;
+            if (val === 'Gooning4TheChampionship') {
+                document.getElementById('password-gate').style.display = 'none';
+                try { sessionStorage.setItem('wos_auth', '1'); } catch(e) {}
+            } else {
+                document.getElementById('gate-error').textContent = 'Wrong password. Try again.';
+                document.getElementById('gate-input').value = '';
+            }
+        }
+        var authed = false;
+        try { authed = sessionStorage.getItem('wos_auth') === '1'; } catch(e) {}
+        if (authed) document.getElementById('password-gate').style.display = 'none';
+        document.getElementById('gate-btn').addEventListener('click', checkPassword);
+        document.getElementById('gate-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+    })();
+</script>
+
+<div class="stripe"></div>
+
+<div class="container">
+    <div class="nav-links">
+        <a href="index.html">&larr; Wall of Shame</a>
+        <a href="draft.html">Draft Board</a>
+        <a href="rosters.html">Rosters</a>
+    </div>
+
+    <header class="header">
+        <div class="title-main">DRAFT GRADES</div>
+        <div class="title-sub">Steals, Reaches &amp; Team Grades</div>
+        <div class="title-tagline" id="league-tagline">Loading league&hellip;</div>
+    </header>
+
+    <div id="content">
+        <div class="status-box" id="status">
+            <p>Crunching draft value vs. player rankings&hellip;</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p class="footer-attr">Draft Analyzer &mdash; Powered by the Sleeper API</p>
+        <p class="footer-note">Grades are based on each pick's slot vs. Sleeper's consensus player rank at pick time &mdash; not an actual AI, just cold blooded math. Kickers &amp; defenses without a ranked value are excluded from scoring.</p>
+    </footer>
+</div>
+
+<div class="stripe"></div>
+
+<script>
+    const LEAGUE_ID = '1388232394384883712';
+    const API = 'https://api.sleeper.app/v1';
+
+    const contentEl = document.getElementById('content');
+    const taglineEl = document.getElementById('league-tagline');
+
+    function showError(msg) {
+        contentEl.innerHTML = `<div class="status-box error"><p>${msg}</p></div>`;
+    }
+
+    async function fetchJSON(path) {
+        const res = await fetch(`${API}${path}`);
+        if (!res.ok) throw new Error(`Request failed: ${path}`);
+        return res.json();
+    }
+
+    function gradeFromZ(z) {
+        if (z > 1.25) return 'A+';
+        if (z > 0.75) return 'A';
+        if (z > 0.35) return 'B+';
+        if (z > -0.1) return 'B';
+        if (z > -0.5) return 'C';
+        if (z > -1.0) return 'D';
+        return 'F';
+    }
+
+    function badgeClass(grade) {
+        return 'badge-' + grade[0];
+    }
+
+    function posColor(pos) {
+        const map = { QB: '#e31937', RB: '#ffd700', WR: '#4a9eff', TE: '#2ecc71', K: '#888888', DEF: '#666666' };
+        return map[pos] || '#555';
+    }
+
+    async function load() {
+        try {
+            const league = await fetchJSON(`/league/${LEAGUE_ID}`);
+            taglineEl.textContent = `${league.name} · ${league.season} Season`;
+
+            const drafts = await fetchJSON(`/league/${LEAGUE_ID}/drafts`);
+            if (!drafts.length) { showError('No drafts found for this league yet.'); return; }
+            const draft = drafts[0];
+
+            const [picks, users, players] = await Promise.all([
+                fetchJSON(`/draft/${draft.draft_id}/picks`),
+                fetchJSON(`/league/${LEAGUE_ID}/users`),
+                fetchJSON(`/players/nfl`)
+            ]);
+
+            if (!picks.length) { showError('Draft found, but no picks have been made yet.'); return; }
+
+            const userMap = {};
+            users.forEach(u => {
+                userMap[u.user_id] = {
+                    team: (u.metadata && u.metadata.team_name) || u.display_name,
+                    owner: u.display_name,
+                    avatar: u.avatar ? `https://sleepercdn.com/avatars/thumbs/${u.avatar}` : null
+                };
+            });
+
+            // enrich each pick with rank + value
+            const enriched = picks.map(p => {
+                const meta = p.metadata || {};
+                const player = players[p.player_id] || {};
+                const rank = typeof player.search_rank === 'number' ? player.search_rank : null;
+                const value = rank !== null ? (p.pick_no - rank) : null;
+                const playerName = meta.first_name ? `${meta.first_name} ${meta.last_name}` : (meta.last_name || 'N/A');
+                return {
+                    ...p,
+                    playerName,
+                    position: meta.position || player.position || '',
+                    rank,
+                    value,
+                    team: (userMap[p.picked_by] || {}).team || 'Unknown',
+                    owner: (userMap[p.picked_by] || {}).owner || '',
+                    avatar: (userMap[p.picked_by] || {}).avatar || null
+                };
+            });
+
+            // group by team
+            const byTeam = {};
+            enriched.forEach(p => {
+                const key = p.picked_by;
+                if (!byTeam[key]) byTeam[key] = { team: p.team, owner: p.owner, avatar: p.avatar, picks: [] };
+                byTeam[key].picks.push(p);
+            });
+
+            const teamStats = Object.entries(byTeam).map(([userId, t]) => {
+                const scored = t.picks.filter(p => p.value !== null);
+                const avgValue = scored.length ? scored.reduce((s, p) => s + p.value, 0) / scored.length : 0;
+                const best = scored.length ? scored.reduce((a, b) => (b.value > a.value ? b : a)) : null;
+                const worst = scored.length ? scored.reduce((a, b) => (b.value < a.value ? b : a)) : null;
+                const posCounts = {};
+                t.picks.forEach(p => { posCounts[p.position] = (posCounts[p.position] || 0) + 1; });
+                return { userId, team: t.team, owner: t.owner, avatar: t.avatar, picks: t.picks, avgValue, best, worst, posCounts };
+            });
+
+            const mean = teamStats.reduce((s, t) => s + t.avgValue, 0) / teamStats.length;
+            const variance = teamStats.reduce((s, t) => s + Math.pow(t.avgValue - mean, 2), 0) / teamStats.length;
+            const stdev = Math.sqrt(variance) || 1;
+            teamStats.forEach(t => { t.grade = gradeFromZ((t.avgValue - mean) / stdev); });
+
+            teamStats.sort((a, b) => b.avgValue - a.avgValue);
+
+            const scoredPicks = enriched.filter(p => p.value !== null);
+            const leagueSteal = scoredPicks.reduce((a, b) => (b.value > a.value ? b : a));
+            const leagueReach = scoredPicks.reduce((a, b) => (b.value < a.value ? b : a));
+
+            const leaderboardHtml = teamStats.map((t, i) => `
+                <div class="grade-row">
+                    <div class="grade-rank">${i + 1}</div>
+                    <img class="team-avatar" src="${t.avatar || 'https://sleepercdn.com/images/v2/icons/player_default.webp'}" alt="" loading="lazy">
+                    <div>
+                        <div class="grade-team">${t.team}</div>
+                        ${t.owner && t.owner !== t.team ? `<div class="grade-owner">${t.owner}</div>` : ''}
+                    </div>
+                    <div class="grade-value">${t.avgValue >= 0 ? '+' : ''}${t.avgValue.toFixed(1)} avg value</div>
+                    <div class="grade-badge ${badgeClass(t.grade)}">${t.grade}</div>
+                </div>`).join('');
+
+            const highlightsHtml = `
+                <div class="highlight-grid">
+                    <div class="highlight-card">
+                        <div class="highlight-label">Steal of the Draft</div>
+                        <div class="highlight-player">${leagueSteal.playerName}</div>
+                        <div class="highlight-meta">
+                            ${leagueSteal.position} &middot; Pick ${leagueSteal.pick_no} (Rd ${leagueSteal.round})<br>
+                            Ranked #${leagueSteal.rank} overall &middot; ${leagueSteal.team}<br>
+                            +${leagueSteal.value} value
+                        </div>
+                    </div>
+                    <div class="highlight-card reach">
+                        <div class="highlight-label">Reach of the Draft</div>
+                        <div class="highlight-player">${leagueReach.playerName}</div>
+                        <div class="highlight-meta">
+                            ${leagueReach.position} &middot; Pick ${leagueReach.pick_no} (Rd ${leagueReach.round})<br>
+                            Ranked #${leagueReach.rank} overall &middot; ${leagueReach.team}<br>
+                            ${leagueReach.value} value
+                        </div>
+                    </div>
+                </div>`;
+
+            const teamCardsHtml = teamStats.map((t, i) => {
+                const posOrder = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'];
+                const maxCount = Math.max(...Object.values(t.posCounts));
+                const posHtml = posOrder.filter(p => t.posCounts[p]).map(pos => {
+                    const count = t.posCounts[pos];
+                    const pct = (count / maxCount) * 100;
+                    return `
+                        <div class="pos-bar-row">
+                            <span class="pos-bar-label">${pos}</span>
+                            <div class="pos-bar-track"><div class="pos-bar-fill" style="width:${pct}%;background:${posColor(pos)}"></div></div>
+                            <span class="pos-bar-count">${count}</span>
+                        </div>`;
+                }).join('');
+
+                const bestWorstHtml = t.best ? `
+                    <div class="best-worst-grid">
+                        <div class="bw-box">
+                            <div class="bw-label">Best Value</div>
+                            <div class="bw-player">${t.best.playerName}</div>
+                            <div class="bw-meta">Pick ${t.best.pick_no} &middot; Rank #${t.best.rank} &middot; +${t.best.value}</div>
+                        </div>
+                        <div class="bw-box">
+                            <div class="bw-label">Biggest Reach</div>
+                            <div class="bw-player">${t.worst.playerName}</div>
+                            <div class="bw-meta">Pick ${t.worst.pick_no} &middot; Rank #${t.worst.rank} &middot; ${t.worst.value}</div>
+                        </div>
+                    </div>` : '';
+
+                return `
+                    <div class="team-card" id="team-card-${i}">
+                        <div class="team-card-head" onclick="document.getElementById('team-card-${i}').classList.toggle('open')">
+                            <div class="team-card-title-row">
+                                <img class="team-avatar" src="${t.avatar || 'https://sleepercdn.com/images/v2/icons/player_default.webp'}" alt="" loading="lazy">
+                                <div>
+                                    <div class="team-card-title">${t.team}</div>
+                                    <div class="team-card-sub">${t.owner && t.owner !== t.team ? t.owner + ' · ' : ''}${t.picks.length} picks</div>
+                                </div>
+                            </div>
+                            <div class="grade-badge ${badgeClass(t.grade)}">${t.grade}</div>
+                        </div>
+                        <div class="team-card-body">
+                            ${posHtml}
+                            ${bestWorstHtml}
+                        </div>
+                    </div>`;
+            }).join('');
+
+            contentEl.innerHTML = `
+                <div class="section-title">Team Grades</div>
+                ${leaderboardHtml}
+                <div class="section-title">League Highlights</div>
+                ${highlightsHtml}
+                <div class="section-title">Team Breakdown</div>
+                ${teamCardsHtml}`;
+        } catch (err) {
+            console.error(err);
+            showError('Could not load draft analysis. Check the league ID or try again later.');
+        }
+    }
+
+    load();
+</script>
+</body>
+</html>
