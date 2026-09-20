@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Lineup Optimizer | Start Your Best Team</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-panel: #141414;
+            --bg-card: #1c1c1c;
+            --accent-red: #e31937;
+            --accent-red-bright: #ff4d6a;
+            --accent-green: #2ecc71;
+            --accent-yellow: #ffd700;
+            --accent-dim: #7a0f1e;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --text-muted: #444444;
+            --border-dark: #2a2a2a;
+            --glow-red: rgba(227, 25, 55, 0.35);
+            --glow-green: rgba(46, 204, 113, 0.3);
+            --glow-gold: rgba(255, 215, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Oswald', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .stripe {
+            height: 12px;
+            background-image: repeating-linear-gradient(90deg, #fff 0px, #fff 12px, #000 12px, #000 24px);
+        }
+
+        .container { max-width: 860px; margin: 0 auto; padding: 36px 16px 56px; }
+
+        .header { text-align: center; margin-bottom: 32px; }
+
+        .header::after {
+            content: '';
+            display: block;
+            margin: 20px auto 0;
+            width: 100px;
+            height: 3px;
+            background: var(--accent-red);
+            box-shadow: 0 0 16px var(--glow-red);
+        }
+
+        .title-main {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.6rem, 12vw, 5.5rem);
+            letter-spacing: clamp(4px, 2vw, 10px);
+            color: var(--text-primary);
+            text-shadow: 0 0 60px var(--glow-red), 0 0 120px var(--accent-dim);
+            line-height: 1;
+        }
+
+        .title-sub {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: clamp(0.65rem, 2.5vw, 1rem);
+            letter-spacing: clamp(6px, 3vw, 14px);
+            color: var(--accent-red);
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .title-tagline {
+            font-size: clamp(0.65rem, 2vw, 0.85rem);
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-bottom: 1px solid var(--border-dark);
+            padding-bottom: 2px;
+        }
+
+        .nav-links a:hover { color: var(--accent-red); border-color: var(--accent-red); }
+
+        .status-box { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+        .status-box p { font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; }
+        .status-box.error p { color: var(--accent-red); }
+
+        .team-picker {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-top: 3px solid var(--accent-red);
+            padding: 18px 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .team-picker label {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 3px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .team-picker select {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-dark);
+            color: var(--text-primary);
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.95rem;
+            padding: 12px;
+            outline: none;
+            border-radius: 0;
+            -webkit-appearance: none;
+        }
+
+        .summary-banner {
+            text-align: center;
+            padding: 20px 16px;
+            margin-bottom: 24px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-top: 3px solid var(--accent-green);
+        }
+
+        .summary-banner.no-change { border-top-color: var(--text-muted); }
+
+        .summary-headline {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(1.4rem, 5vw, 2rem);
+            letter-spacing: 1.5px;
+            color: var(--accent-green);
+            text-shadow: 0 0 24px var(--glow-green);
+        }
+
+        .summary-banner.no-change .summary-headline { color: var(--text-secondary); text-shadow: none; }
+
+        .summary-sub {
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-top: 3px solid var(--accent-red);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .panel-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-dark);
+        }
+
+        .panel-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 1.5px; }
+        .panel-total { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 1px; color: var(--accent-red-bright); }
+
+        .lineup-row {
+            display: grid;
+            grid-template-columns: 44px 1fr auto auto;
+            gap: 8px;
+            align-items: center;
+            padding: 9px 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            margin-bottom: 3px;
+        }
+
+        .lineup-row.swap-out { border-color: var(--accent-red); opacity: 0.7; }
+        .lineup-row.swap-in { border-color: var(--accent-green); }
+
+        .lineup-slot {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            color: var(--accent-red-bright);
+            text-align: center;
+        }
+
+        .lineup-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; letter-spacing: 0.5px; }
+
+        .lineup-pos {
+            font-size: 0.65rem;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            text-align: right;
+        }
+
+        .lineup-pts {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .swap-tag {
+            display: inline-block;
+            font-size: 0.55rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 1px 6px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .swap-tag.out { color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .swap-tag.in { color: var(--accent-green); border: 1px solid var(--accent-green); }
+
+        .disclaimer {
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .footer { text-align: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border-dark); }
+        .footer-attr { font-size: 0.65rem; letter-spacing: 3px; color: var(--text-muted); text-transform: uppercase; }
+
+        @media (min-width: 600px) {
+            .container { padding: 48px 24px 64px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="password-gate" style="
+    position:fixed;inset:0;background:#0a0a0a;z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:24px;
+">
+    <div style="
+        background:#141414;border:1px solid #2a2a2a;border-top:3px solid #e31937;
+        padding:40px 32px;width:100%;max-width:400px;text-align:center;
+    ">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:5px;color:#fff;text-shadow:0 0 40px rgba(227,25,55,0.4);">LINEUP OPTIMIZER</div>
+        <div style="font-size:0.7rem;letter-spacing:4px;color:#e31937;text-transform:uppercase;margin:8px 0 32px;">Members Only</div>
+        <input id="gate-input" type="password" placeholder="Password" autocomplete="off" style="
+            width:100%;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;
+            font-family:'Oswald',sans-serif;font-size:1rem;padding:14px;
+            outline:none;margin-bottom:10px;border-radius:0;-webkit-appearance:none;
+            text-align:center;letter-spacing:3px;
+        ">
+        <div id="gate-error" style="color:#e31937;font-size:0.7rem;letter-spacing:2px;min-height:16px;margin-bottom:10px;"></div>
+        <button id="gate-btn" style="
+            width:100%;background:#e31937;color:#fff;border:none;
+            font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:4px;
+            padding:18px;cursor:pointer;min-height:56px;
+            -webkit-appearance:none;border-radius:0;touch-action:manipulation;
+        ">ENTER</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        function checkPassword() {
+            var val = document.getElementById('gate-input').value;
+            if (val === 'Gooning4TheChampionship') {
+                document.getElementById('password-gate').style.display = 'none';
+                try { sessionStorage.setItem('wos_auth', '1'); } catch(e) {}
+            } else {
+                document.getElementById('gate-error').textContent = 'Wrong password. Try again.';
+                document.getElementById('gate-input').value = '';
+            }
+        }
+        var authed = false;
+        try { authed = sessionStorage.getItem('wos_auth') === '1'; } catch(e) {}
+        var isLocal = ['localhost', '127.0.0.1', ''].indexOf(location.hostname) !== -1;
+        if (authed || isLocal) document.getElementById('password-gate').style.display = 'none';
+        document.getElementById('gate-btn').addEventListener('click', checkPassword);
+        document.getElementById('gate-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+    })();
+</script>
+
+<div class="stripe"></div>
+
+<div class="container">
+    <div class="nav-links">
+        <a href="index.html">&larr; Wall of Shame</a>
+        <a href="draft.html">Draft Board</a>
+        <a href="draft-analyzer.html">Draft Grades</a>
+        <a href="rosters.html">Rosters</a>
+        <a href="matchups.html">Weekly Roasts</a>
+    </div>
+
+    <header class="header">
+        <div class="title-main">OPTIMIZER</div>
+        <div class="title-sub">Start Your Best Team</div>
+        <div class="title-tagline" id="league-tagline">Loading league&hellip;</div>
+    </header>
+
+    <div id="content">
+        <div class="status-box" id="status">
+            <p>Pulling your roster and this week's projections from Sleeper&hellip;</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p class="footer-attr">Lineup Optimizer &mdash; Powered by the Sleeper API</p>
+    </footer>
+</div>
+
+<div class="stripe"></div>
+
+<script>
+    const LEAGUE_ID = '1388232394384883712';
+    const API = 'https://api.sleeper.app/v1';
+    const PROJ_API = 'https://api.sleeper.app/projections/nfl';
+    const TEAM_STORAGE_KEY = 'wos_optimizer_owner_id';
+
+    const FLEX_ELIGIBILITY = {
+        FLEX: ['RB', 'WR', 'TE'],
+        WRRB_FLEX: ['RB', 'WR'],
+        REC_FLEX: ['WR', 'TE'],
+        SUPER_FLEX: ['QB', 'RB', 'WR', 'TE']
+    };
+
+    const contentEl = document.getElementById('content');
+    const taglineEl = document.getElementById('league-tagline');
+
+    let league, state, rosters, users, players, projMap, userMap, startingSlots;
+
+    function showError(msg) {
+        contentEl.innerHTML = `<div class="status-box error"><p>${msg}</p></div>`;
+    }
+
+    async function fetchJSON(url) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Request failed: ${url}`);
+        return res.json();
+    }
+
+    function eligiblePositionsForSlot(slot) {
+        return FLEX_ELIGIBILITY[slot] || [slot];
+    }
+
+    function playerInfo(pid) {
+        if (!pid || pid === '0') return { name: 'Empty', pos: '' };
+        const p = players[pid];
+        if (!p) return { name: pid, pos: '' };
+        const pos = p.position || (p.fantasy_positions && p.fantasy_positions[0]) || '';
+        const name = p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim();
+        return { name: name || pid, pos };
+    }
+
+    function projPts(pid) {
+        return projMap[pid] || 0;
+    }
+
+    function popcount(x) {
+        let c = 0;
+        while (x) { c += x & 1; x >>= 1; }
+        return c;
+    }
+
+    // Max-weight assignment of players to ordered slots via bitmask DP.
+    // Slot k may only be filled by a player whose position is eligible for
+    // slots[k], and popcount(mask) always equals the number of slots already
+    // filled, so slot k = popcount(mask) is determined implicitly.
+    function optimizeLineup(slots, candidates) {
+        const n = candidates.length;
+        const m = slots.length;
+        const eligibility = slots.map(slot => {
+            const allowed = eligiblePositionsForSlot(slot);
+            return candidates.map(c => allowed.includes(c.pos));
+        });
+
+        const size = 1 << n;
+        const dp = new Float64Array(size).fill(-Infinity);
+        const choice = new Int16Array(size).fill(-1);
+        const from = new Int32Array(size).fill(-1);
+        dp[0] = 0;
+
+        for (let mask = 0; mask < size; mask++) {
+            if (dp[mask] === -Infinity) continue;
+            const k = popcount(mask);
+            if (k >= m) continue;
+            const elig = eligibility[k];
+            for (let p = 0; p < n; p++) {
+                if (mask & (1 << p)) continue;
+                if (!elig[p]) continue;
+                const newMask = mask | (1 << p);
+                const val = dp[mask] + candidates[p].pts;
+                if (val > dp[newMask]) {
+                    dp[newMask] = val;
+                    choice[newMask] = p;
+                    from[newMask] = mask;
+                }
+            }
+        }
+
+        let bestMask = 0, bestVal = -Infinity;
+        for (let mask = 0; mask < size; mask++) {
+            if (popcount(mask) === m && dp[mask] > bestVal) {
+                bestVal = dp[mask];
+                bestMask = mask;
+            }
+        }
+
+        const assignment = new Array(m).fill(null);
+        let cur = bestMask;
+        for (let k = m - 1; k >= 0; k--) {
+            const p = choice[cur];
+            assignment[k] = p;
+            cur = from[cur];
+        }
+
+        return { assignment, total: bestVal === -Infinity ? 0 : bestVal };
+    }
+
+    function renderTeamPicker(selectedOwnerId) {
+        const options = rosters.map(r => {
+            const u = userMap[r.owner_id] || { team: 'Unknown' };
+            return `<option value="${r.owner_id}" ${r.owner_id === selectedOwnerId ? 'selected' : ''}>${u.team}</option>`;
+        }).join('');
+        return `
+            <div class="team-picker">
+                <label>Your Team</label>
+                <select id="team-select">
+                    <option value="">Select your team&hellip;</option>
+                    ${options}
+                </select>
+            </div>`;
+    }
+
+    function buildLineupRows(slots, pids) {
+        return slots.map((slot, idx) => {
+            const pid = pids[idx];
+            const info = playerInfo(pid);
+            const pts = pid && pid !== '0' ? projPts(pid) : 0;
+            return { slot, pid, name: info.name, pos: info.pos, pts };
+        });
+    }
+
+    function rowHtml(row, cls) {
+        return `
+            <div class="lineup-row ${cls}">
+                <div class="lineup-slot">${row.slot}</div>
+                <div class="lineup-name">${row.name}</div>
+                <div class="lineup-pos">${row.pos}</div>
+                <div class="lineup-pts">${row.pts.toFixed(1)}</div>
+            </div>`;
+    }
+
+    function renderComparison(roster) {
+        const currentRows = buildLineupRows(startingSlots, roster.starters || []);
+        const currentTotal = currentRows.reduce((sum, r) => sum + r.pts, 0);
+
+        const reserve = new Set([...(roster.reserve || []), ...(roster.taxi || [])]);
+        const candidates = (roster.players || [])
+            .filter(pid => !reserve.has(pid))
+            .map(pid => {
+                const info = playerInfo(pid);
+                return { pid, name: info.name, pos: info.pos, pts: projPts(pid) };
+            });
+
+        const { assignment, total: optimalTotal } = optimizeLineup(startingSlots, candidates);
+        const optimalRows = startingSlots.map((slot, idx) => {
+            const c = assignment[idx] !== null ? candidates[assignment[idx]] : null;
+            return c
+                ? { slot, pid: c.pid, name: c.name, pos: c.pos, pts: c.pts }
+                : { slot, pid: null, name: 'Empty', pos: '', pts: 0 };
+        });
+
+        const currentPids = new Set(currentRows.filter(r => r.pid && r.pid !== '0').map(r => r.pid));
+        const optimalPids = new Set(optimalRows.filter(r => r.pid).map(r => r.pid));
+
+        const diff = optimalTotal - currentTotal;
+        const bannerClass = diff > 0.05 ? '' : 'no-change';
+        const bannerHeadline = diff > 0.05
+            ? `+${diff.toFixed(1)} PROJECTED POINTS AVAILABLE`
+            : 'YOUR LINEUP IS ALREADY OPTIMAL';
+        const bannerSub = diff > 0.05
+            ? 'Make the swaps below to start your highest-projected lineup'
+            : 'No swaps found that would raise your projected total';
+
+        const currentHtml = currentRows.map(r => {
+            const isSwappedOut = r.pid && r.pid !== '0' && !optimalPids.has(r.pid);
+            return rowHtml(r, isSwappedOut ? 'swap-out' : '');
+        }).join('');
+
+        const optimalHtml = optimalRows.map(r => {
+            const isSwappedIn = r.pid && !currentPids.has(r.pid);
+            const tag = isSwappedIn ? '<span class="swap-tag in">Start</span>' : '';
+            return `
+                <div class="lineup-row ${isSwappedIn ? 'swap-in' : ''}">
+                    <div class="lineup-slot">${r.slot}</div>
+                    <div class="lineup-name">${r.name}${tag}</div>
+                    <div class="lineup-pos">${r.pos}</div>
+                    <div class="lineup-pts">${r.pts.toFixed(1)}</div>
+                </div>`;
+        }).join('');
+
+        return `
+            <div class="summary-banner ${bannerClass}">
+                <div class="summary-headline">${bannerHeadline}</div>
+                <div class="summary-sub">${bannerSub}</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title-row">
+                    <div class="panel-title">Current Lineup</div>
+                    <div class="panel-total">${currentTotal.toFixed(1)} PTS</div>
+                </div>
+                ${currentHtml}
+            </div>
+
+            <div class="panel">
+                <div class="panel-title-row">
+                    <div class="panel-title">Optimal Lineup</div>
+                    <div class="panel-total">${optimalTotal.toFixed(1)} PTS</div>
+                </div>
+                ${optimalHtml}
+            </div>
+
+            <p class="disclaimer">Based on Sleeper's week ${state.week} projections &middot; not a guarantee of actual scoring</p>`;
+    }
+
+    function renderForOwner(ownerId) {
+        const roster = rosters.find(r => r.owner_id === ownerId);
+        const pickerHtml = renderTeamPicker(ownerId);
+        if (!roster) {
+            contentEl.innerHTML = pickerHtml;
+            attachPickerHandler();
+            return;
+        }
+        contentEl.innerHTML = pickerHtml + renderComparison(roster);
+        attachPickerHandler();
+    }
+
+    function attachPickerHandler() {
+        const select = document.getElementById('team-select');
+        select.addEventListener('change', () => {
+            const ownerId = select.value;
+            try { localStorage.setItem(TEAM_STORAGE_KEY, ownerId); } catch (e) {}
+            renderForOwner(ownerId);
+        });
+    }
+
+    async function load() {
+        try {
+            league = await fetchJSON(`${API}/league/${LEAGUE_ID}`);
+            taglineEl.textContent = `${league.name} · ${league.season} Season`;
+            startingSlots = league.roster_positions.filter(p => p !== 'BN' && p !== 'IR' && p !== 'TAXI');
+
+            state = await fetchJSON(`${API}/state/nfl`);
+
+            [rosters, users, players] = await Promise.all([
+                fetchJSON(`${API}/league/${LEAGUE_ID}/rosters`),
+                fetchJSON(`${API}/league/${LEAGUE_ID}/users`),
+                fetchJSON(`${API}/players/nfl`)
+            ]);
+
+            if (!rosters.length) { showError('No rosters found for this league yet.'); return; }
+
+            userMap = {};
+            users.forEach(u => {
+                userMap[u.user_id] = {
+                    team: (u.metadata && u.metadata.team_name) || u.display_name
+                };
+            });
+
+            const neededPositions = new Set();
+            startingSlots.forEach(s => eligiblePositionsForSlot(s).forEach(p => neededPositions.add(p)));
+            const posQuery = Array.from(neededPositions).map(p => `position[]=${encodeURIComponent(p)}`).join('&');
+
+            const projList = await fetchJSON(`${PROJ_API}/${state.season}/${state.week}?season_type=regular&${posQuery}`);
+            const recValue = (league.scoring_settings && league.scoring_settings.rec) || 0;
+            projMap = {};
+            projList.forEach(entry => {
+                const stats = entry.stats || {};
+                let pts;
+                if (recValue >= 1) pts = stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std;
+                else if (recValue >= 0.5) pts = stats.pts_half_ppr ?? stats.pts_std;
+                else pts = stats.pts_std ?? stats.pts_half_ppr;
+                projMap[entry.player_id] = pts || 0;
+            });
+
+            let ownerId = '';
+            try { ownerId = localStorage.getItem(TEAM_STORAGE_KEY) || ''; } catch (e) {}
+            if (ownerId && !rosters.some(r => r.owner_id === ownerId)) ownerId = '';
+
+            renderForOwner(ownerId);
+        } catch (err) {
+            console.error(err);
+            showError('Could not load your roster. Check the league ID or try again later.');
+        }
+    }
+
+    load();
+</script>
+</body>
+</html>

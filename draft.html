@@ -291,7 +291,8 @@
 
         var authed = false;
         try { authed = sessionStorage.getItem('wos_auth') === '1'; } catch(e) {}
-        if (authed) {
+        var isLocal = ['localhost', '127.0.0.1', ''].indexOf(location.hostname) !== -1;
+        if (authed || isLocal) {
             document.getElementById('password-gate').style.display = 'none';
         }
 

@@ -242,7 +242,8 @@
         }
         var authed = false;
         try { authed = sessionStorage.getItem('wos_auth') === '1'; } catch(e) {}
-        if (authed) document.getElementById('password-gate').style.display = 'none';
+        var isLocal = ['localhost', '127.0.0.1', ''].indexOf(location.hostname) !== -1;
+        if (authed || isLocal) document.getElementById('password-gate').style.display = 'none';
         document.getElementById('gate-btn').addEventListener('click', checkPassword);
         document.getElementById('gate-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') checkPassword();
@@ -258,6 +259,7 @@
         <a href="draft.html">Draft Board</a>
         <a href="draft-analyzer.html">Draft Grades</a>
         <a href="matchups.html">Weekly Roasts</a>
+        <a href="lineup-optimizer.html">Lineup Optimizer</a>
     </div>
 
     <header class="header">
