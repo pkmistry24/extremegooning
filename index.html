@@ -609,6 +609,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDEC_feEvLl4l2DGzbEv1VBFjAOCs7WKQE",
@@ -622,7 +623,14 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const auth = getAuth(app);
     const entriesRef = ref(db, 'entries');
+
+    // Reads stay public (it's a public leaderboard); writes require an
+    // auth token so a bare curl/PUT against the database URL can't touch
+    // data. Anonymous sign-in keeps this frictionless for visitors while
+    // matching database rules of `.write: "auth != null"`.
+    const authReady = signInAnonymously(auth);
 
     let entries = {};
     let editingKey = null;
@@ -658,7 +666,7 @@
         return true;
     }
 
-    window.addEntry = function() {
+    window.addEntry = async function() {
         const name = document.getElementById('input-name').value;
         const teamname = document.getElementById('input-teamname').value;
         const season = document.getElementById('input-season').value;
@@ -669,6 +677,7 @@
 
         if (!validateInputs(name, season, racedate, timeStr, errorEl)) return;
 
+        await authReady;
         push(entriesRef, {
             name: name.trim().toUpperCase(),
             teamname: teamname.trim(),
@@ -687,8 +696,9 @@
         document.getElementById('input-name').focus();
     };
 
-    window.deleteEntry = function(key) {
+    window.deleteEntry = async function(key) {
         if (!confirm('Remove this entry?')) return;
+        await authReady;
         remove(ref(db, `entries/${key}`));
     };
 
@@ -712,7 +722,7 @@
         document.getElementById('edit-modal').classList.remove('active');
     };
 
-    window.saveEdit = function() {
+    window.saveEdit = async function() {
         const name = document.getElementById('edit-name').value;
         const teamname = document.getElementById('edit-teamname').value;
         const season = document.getElementById('edit-season').value;
@@ -723,6 +733,7 @@
 
         if (!validateInputs(name, season, racedate, timeStr, errorEl)) return;
 
+        await authReady;
         set(ref(db, `entries/${editingKey}`), {
             name: name.trim().toUpperCase(),
             teamname: teamname.trim(),
