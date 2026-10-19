@@ -72,6 +72,23 @@ function nicknameBankFor(...statsBlurbs) {
     return lines.length ? lines.join('\n') : 'none';
 }
 
+// When either side still has players to play the result is unknown. The system
+// prompt already says so, but the model drifts into final-result language, so
+// repeat it as a hard, game-specific instruction right next to the task.
+function liveNotice(teamA, scoreA, statsA, teamB, scoreB, statsB) {
+    if (!/STILL TO PLAY/.test(statsA) && !/STILL TO PLAY/.test(statsB)) return '';
+    const leader = scoreA >= scoreB ? teamA : teamB;
+    const trailer = scoreA >= scoreB ? teamB : teamA;
+    const gap = Math.abs(scoreA - scoreB).toFixed(2);
+    return `
+THIS GAME IS NOT OVER. ${leader} currently leads ${trailer} by ${gap}, and players are still to play. The outcome is genuinely unknown, so:
+- Do NOT say or imply that anyone won, lost, is finished, is doomed, is safe, "needs a miracle", or has the game "wrapped up" or "in the bag". No past-tense verdicts about the matchup as a whole.
+- Describe only the current score and who is leading RIGHT NOW.
+- Name the players still to play and treat them as live wildcards who could swing it either way.
+- Finish on open suspense (a cliffhanger line), not a conclusion.
+`;
+}
+
 function corsHeaders(origin) {
     const allowed = ALLOWED_ORIGINS.has(origin);
     return {
@@ -174,7 +191,7 @@ Stats: ${statsB}
 <nickname_bank>
 ${nicknameBankFor(statsA, statsB)}
 </nickname_bank>
-
+${liveNotice(teamA, scoreA, statsA, teamB, scoreB, statsB)}
 Write the roast.`;
 
         let anthropicRes;
