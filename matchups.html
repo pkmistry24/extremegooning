@@ -193,13 +193,38 @@
             border-top: 1px solid var(--border-dark);
         }
 
+        .roast-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
         .roast-label {
             font-size: 0.58rem;
             letter-spacing: 3px;
             color: var(--text-muted);
             text-transform: uppercase;
-            margin-bottom: 6px;
         }
+
+        .roast-regen {
+            flex-shrink: 0;
+            background: transparent;
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.58rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 4px 9px;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+        }
+
+        .roast-regen:hover:not(:disabled) { color: var(--text-primary); border-color: var(--text-muted); }
+        .roast-regen:disabled { opacity: 0.5; cursor: wait; }
 
         .roast-text {
             font-size: 0.85rem;
@@ -317,7 +342,7 @@
     // the site's password gate) - just a filter against casual/automated
     // hits that never loaded the page. Must match the worker's SITE_KEY secret.
     const ROAST_SITE_KEY = 'rcZlS2JZYbyxRKTKSyoM1dYycsQiu3oh';
-    const ROAST_CACHE_PREFIX = 'roast_v1_';
+    const ROAST_CACHE_PREFIX = 'roast_v5_';
 
     const contentEl = document.getElementById('content');
     const taglineEl = document.getElementById('league-tagline');
@@ -339,32 +364,32 @@
     }
 
     const BLOWOUT_LINES = [
-        `<b>{winner}</b> didn't just beat <b>{loser}</b>, they filed a missing persons report on their season.`,
-        `<b>{loser}</b> showed up to a gunfight with a butter knife against <b>{winner}</b>.`,
-        `<b>{winner}</b> put <b>{loser}</b> in the blender and hit puree.`,
-        `That wasn't a matchup, that was <b>{winner}</b> performing a public execution on <b>{loser}</b>.`
+        `Back... back... back... back... <b>{winner}</b> is GONE! <b>{loser}</b> never even saw it leave the yard. Whoop!`,
+        `<b>{winner}</b> with nothing but green grass in front of them &mdash; and <b>{loser}</b> is still stuck in the locker room tying their cleats.`,
+        `Rumblin', bumblin', stumblin' &mdash; that's <b>{loser}</b> all afternoon, while <b>{winner}</b> goes from way downtown!`,
+        `Somebody call the league office, <b>{winner}</b> just filed a missing persons report on <b>{loser}</b>'s season. That's why they play the games!`
     ];
 
     const COMFORTABLE_LINES = [
-        `<b>{winner}</b> cruised past <b>{loser}</b> like it owed them money.`,
-        `<b>{loser}</b> never really had an answer for <b>{winner}</b> this week.`,
-        `<b>{winner}</b> took control early and <b>{loser}</b> just came along for the ride.`,
-        `Nothing flashy from <b>{winner}</b>, just a clean, methodical beatdown of <b>{loser}</b>.`
+        `<b>{winner}</b> could... go... all... the... way! Meanwhile <b>{loser}</b> is still looking for the handoff.`,
+        `<b>{winner}</b> cruises past <b>{loser}</b> like a Sunday drive down the Merritt Parkway. Whoop!`,
+        `Never in doubt for <b>{winner}</b>! <b>{loser}</b> had a game plan, it just wasn't a good one.`,
+        `<b>{winner}</b> takes the lead and the keys &mdash; <b>{loser}</b> just along for the ride, folks.`
     ];
 
     const CLOSE_LINES = [
-        `<b>{winner}</b> escaped with a win over <b>{loser}</b> by the skin of their teeth.`,
-        `<b>{loser}</b> will be replaying this one in their head all week after losing to <b>{winner}</b> by a hair.`,
-        `A coin flip decided by whoever's kicker didn't choke &mdash; <b>{winner}</b> edges out <b>{loser}</b>.`,
-        `<b>{winner}</b> survived a nail-biter against <b>{loser}</b> that came down to the wire.`
+        `Photo finish at the goal line! <b>{winner}</b> squeaks by <b>{loser}</b> and somewhere a kicker is sweating through his jersey.`,
+        `Down to the wire &mdash; <b>{winner}</b> nips <b>{loser}</b> by a whisker. <b>{loser}</b> will be replaying this one all week. That's why they play the games!`,
+        `Back... back... back... just short! <b>{loser}</b> comes up inches shy and <b>{winner}</b> survives the nail-biter. Whoop!`,
+        `A coin flip decided by whoever's kicker didn't choke &mdash; <b>{winner}</b> edges <b>{loser}</b>, and the Boomer needs a towel.`
     ];
 
     const TIE_LINES = [
-        `<b>{teamA}</b> and <b>{teamB}</b> tied. Nobody wins, everybody's mad.`
+        `<b>{teamA}</b> and <b>{teamB}</b> end in a tie! Nobody wins, everybody's mad, and the Boomer is speechless. Almost.`
     ];
 
     const PENDING_LINES = [
-        `<b>{teamA}</b> vs <b>{teamB}</b> hasn't kicked off yet &mdash; trash talk pending.`
+        `<b>{teamA}</b> vs <b>{teamB}</b>... the kickoff's still to come, folks. Stay tuned, the trash talk is warming up in the bullpen!`
     ];
 
     function marginTier(margin) {
@@ -404,6 +429,16 @@
             return seededPick(TIE_LINES, week * 100 + matchupId)
                 .replace('{teamA}', a.team).replace('{teamB}', b.team);
         }
+        const leftA = remainingStarters(a, players), leftB = remainingStarters(b, players);
+        if (leftA.length || leftB.length) {
+            const lead = a.points >= b.points ? a : b;
+            const trail = lead === a ? b : a;
+            const names = (arr) => arr.slice(0, 3).map(r => `<b>${r.name}</b> (${r.team})`).join(', ');
+            const bits = [];
+            if (leftA.length) bits.push(`${a.team} still has ${names(leftA)} to go`);
+            if (leftB.length) bits.push(`${b.team} still has ${names(leftB)} to go`);
+            return `Hold the phone, this one's not over! <b>${lead.team}</b> leads <b>${trail.team}</b> ${lead.points.toFixed(2)}&ndash;${trail.points.toFixed(2)}, but ${bits.join(' and ')}. Don't call the game until the fat lady sings. Whoop!`;
+        }
         const winner = a.points > b.points ? a : b;
         const loser = winner === a ? b : a;
         const margin = Math.abs(a.points - b.points);
@@ -411,32 +446,96 @@
         let line = seededPick(marginTier(margin), seed)
             .replace('{winner}', winner.team).replace('{loser}', loser.team);
 
-        const loserBW = bestWorstStarter(loser, players);
-        const winnerBW = bestWorstStarter(winner, players);
+        const winnerTop = rankedStarters(winner, players).slice(0, 2).filter(r => r.pts >= 12);
+        const loserRanked = rankedStarters(loser, players);
+        const loserTop = loserRanked[0];
+        const loserWorst = loserRanked[loserRanked.length - 1];
         const extras = [];
-        if (loserBW.worst && loserBW.worst.pts < 5) {
-            extras.push(`<b>${loserBW.worst.name}</b> no-showed for ${loser.team} with just ${loserBW.worst.pts.toFixed(1)} pts.`);
+        if (winnerTop.length) {
+            extras.push(`${winnerTop.map(r => `<b>${r.name}</b> (${r.pts.toFixed(2)})`).join(' and ')} went all... the... way for ${winner.team}!`);
         }
-        if (winnerBW.best && winnerBW.best.pts > 20) {
-            extras.push(`<b>${winnerBW.best.name}</b> carried ${winner.team} with ${winnerBW.best.pts.toFixed(1)} pts.`);
+        if (loserTop && loserTop.pts >= 15) {
+            extras.push(`<b>${loserTop.name}</b> did all he could for ${loser.team} with ${loserTop.pts.toFixed(2)} pts, but nobody else showed up.`);
+        }
+        if (loserWorst && loserWorst.pts < 5) {
+            extras.push(`<b>${loserWorst.name}</b> went rumblin', bumblin', stumblin' &mdash; ${loserWorst.pts.toFixed(2)} pts.`);
         }
         return line + (extras.length ? ' ' + extras.join(' ') : '');
     }
 
-    function plainStatsBlurb(entry, players) {
-        const bw = bestWorstStarter(entry, players);
-        if (!bw.best) return '';
-        return `Best starter: ${bw.best.name} (${bw.best.pts.toFixed(1)} pts). Worst starter: ${bw.worst.name} (${bw.worst.pts.toFixed(1)} pts).`;
+    // team abbreviation -> { state: 'pre'|'in'|'post', detail } for the current NFL week.
+    // Empty for past weeks (the ESPN scoreboard only covers the current week).
+    let gameState = {};
+    const ESPN_TO_SLEEPER = { WSH: 'WAS' };
+
+    async function loadGameState(week) {
+        gameState = {};
+        try {
+            const nfl = await fetchJSON('/state/nfl');
+            if (Number(nfl.week) !== week) return;
+            const res = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard');
+            if (!res.ok) return;
+            const data = await res.json();
+            (data.events || []).forEach(ev => {
+                const type = ev.status && ev.status.type;
+                if (!type) return;
+                (ev.competitions[0].competitors || []).forEach(c => {
+                    const abbr = c.team.abbreviation;
+                    gameState[ESPN_TO_SLEEPER[abbr] || abbr] = { state: type.state, detail: type.shortDetail };
+                });
+            });
+        } catch (e) {
+            console.warn('Game status unavailable:', e);
+        }
     }
 
-    async function fetchAIRoast(week, matchupId, a, b, players) {
+    function liveTagFor(a, b, players) {
+        const n = remainingStarters(a, players).length + remainingStarters(b, players).length;
+        return n ? ` \u00b7 LIVE, ${n} still to play` : '';
+    }
+
+    function rankedStarters(entry, players) {
+        const starters = entry.starters || [];
+        const pts = entry.starters_points || [];
+        return starters.map((pid, i) => {
+            const p = players[pid] || {};
+            return { name: playerName(pid, players), pos: p.position || '', team: p.team || pid, pts: pts[i] || 0 };
+        }).sort((x, y) => y.pts - x.pts);
+    }
+
+    function remainingStarters(entry, players) {
+        return rankedStarters(entry, players).filter(r => {
+            const g = gameState[r.team];
+            return g && g.state !== 'post';
+        }).map(r => ({ ...r, detail: gameState[r.team].detail, live: gameState[r.team].state === 'in' }));
+    }
+
+    function plainStatsBlurb(entry, players) {
+        const ranked = rankedStarters(entry, players);
+        if (!ranked.length) return '';
+        const fmt = r => `${r.name}${r.pos ? ' (' + r.pos + ')' : ''} ${r.pts.toFixed(2)}`;
+        const total = ranked.reduce((t, r) => t + r.pts, 0) || 1;
+        const top = ranked.slice(0, 3);
+        const topShare = Math.round(top.reduce((t, r) => t + r.pts, 0) / total * 100);
+        const bottom = ranked.slice(-2).reverse();
+        const left = remainingStarters(entry, players);
+        const leftTxt = left.length
+            ? ` STILL TO PLAY: ${left.map(r => `${r.name} (${r.pos}, ${r.team}, ${r.live ? 'playing now' : r.detail})`).join('; ')}.`
+            : ' All starters are done.';
+        return `Carried by: ${top.map(fmt).join('; ')} (top 3 = ${topShare}% of the score). Duds: ${bottom.map(fmt).join('; ')}.${leftTxt}`;
+    }
+
+    async function fetchAIRoast(week, matchupId, a, b, players, force = false) {
         if (!ROAST_API_URL || a.points === 0 && b.points === 0) return null;
 
-        const cacheKey = `${ROAST_CACHE_PREFIX}${week}_${matchupId}_${a.points.toFixed(1)}_${b.points.toFixed(1)}`;
-        try {
-            const cached = localStorage.getItem(cacheKey);
-            if (cached) return cached;
-        } catch (e) {}
+        const remaining = remainingStarters(a, players).length + '-' + remainingStarters(b, players).length;
+        const cacheKey = `${ROAST_CACHE_PREFIX}${week}_${matchupId}_${a.points.toFixed(2)}_${b.points.toFixed(2)}_${remaining}`;
+        if (!force) {
+            try {
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) return cached;
+            } catch (e) {}
+        }
 
         try {
             const res = await fetch(ROAST_API_URL, {
@@ -495,13 +594,17 @@
                 if (hasPoints) latestPlayedWeek = i + 1;
             });
 
+            let gameWeek = latestPlayedWeek;
+            await loadGameState(latestPlayedWeek);
+
             weekPickerEl.style.display = 'flex';
             weekPickerEl.innerHTML = weeks.map(w => {
                 const hasData = weekMatchupsAll[w - 1].some(m => m.points > 0);
                 return `<button class="week-pill ${w === latestPlayedWeek ? 'active' : ''} ${hasData ? '' : 'empty'}" data-week="${w}">WK ${w}</button>`;
             }).join('');
 
-            function renderWeek(week) {
+            async function renderWeek(week) {
+                if (week !== gameWeek) { await loadGameState(week); gameWeek = week; }
                 Array.from(weekPickerEl.children).forEach(btn => {
                     btn.classList.toggle('active', Number(btn.dataset.week) === week);
                 });
@@ -529,6 +632,7 @@
 
                     const roast = buildLocalRoast(week, m1.matchup_id, t1, t2, players);
                     const roastId = `roast-${week}-${m1.matchup_id}`;
+                    const liveTag = liveTagFor(t1, t2, players);
                     const labelId = `roast-label-${week}-${m1.matchup_id}`;
 
                     return `
@@ -538,7 +642,7 @@
                                     <img class="team-avatar" src="${t1.avatar || 'https://sleepercdn.com/images/v2/icons/player_default.webp'}" alt="" loading="lazy">
                                     <div>
                                         <div class="matchup-team-name">${t1.team}</div>
-                                        <div class="matchup-score">${t1.points.toFixed(1)}</div>
+                                        <div class="matchup-score">${t1.points.toFixed(2)}</div>
                                     </div>
                                 </div>
                                 <div class="matchup-vs">VS</div>
@@ -546,12 +650,15 @@
                                     <img class="team-avatar" src="${t2.avatar || 'https://sleepercdn.com/images/v2/icons/player_default.webp'}" alt="" loading="lazy">
                                     <div>
                                         <div class="matchup-team-name">${t2.team}</div>
-                                        <div class="matchup-score">${t2.points.toFixed(1)}</div>
+                                        <div class="matchup-score">${t2.points.toFixed(2)}</div>
                                     </div>
                                 </div>
                             </div>
                             <div class="roast-box">
-                                <div class="roast-label" id="${labelId}">The Roast</div>
+                                <div class="roast-head">
+                                    <div class="roast-label" id="${labelId}">The Roast${liveTag}</div>
+                                    ${ROAST_API_URL && (t1.points || t2.points) ? `<button class="roast-regen" type="button" data-matchup="${m1.matchup_id}">&#8635; Re-roast</button>` : ''}
+                                </div>
                                 <div class="roast-text" id="${roastId}">${roast}</div>
                             </div>
                         </div>`;
@@ -559,20 +666,43 @@
 
                 contentEl.innerHTML = cards;
 
+                function applyAIRoast(pair, force) {
+                    const [m1, m2] = pair;
+                    const t1 = { ...m1, team: (rosterOwner[m1.roster_id] || {}).team || 'Unknown' };
+                    const t2 = { ...m2, team: (rosterOwner[m2.roster_id] || {}).team || 'Unknown' };
+                    return fetchAIRoast(week, m1.matchup_id, t1, t2, players, force).then(aiRoast => {
+                        if (!aiRoast) return false;
+                        const roastEl = document.getElementById(`roast-${week}-${m1.matchup_id}`);
+                        const labelEl = document.getElementById(`roast-label-${week}-${m1.matchup_id}`);
+                        if (roastEl) roastEl.textContent = aiRoast;
+                        if (labelEl) labelEl.textContent = 'The Roast (AI)' + liveTagFor(t1, t2, players);
+                        return true;
+                    });
+                }
+
                 if (ROAST_API_URL) {
                     Object.values(byId).forEach(pair => {
-                        if (pair.length < 2) return;
-                        const [m1, m2] = pair;
-                        const t1 = { ...m1, team: (rosterOwner[m1.roster_id] || {}).team || 'Unknown' };
-                        const t2 = { ...m2, team: (rosterOwner[m2.roster_id] || {}).team || 'Unknown' };
-                        fetchAIRoast(week, m1.matchup_id, t1, t2, players).then(aiRoast => {
-                            if (!aiRoast) return;
-                            const roastEl = document.getElementById(`roast-${week}-${m1.matchup_id}`);
-                            const labelEl = document.getElementById(`roast-label-${week}-${m1.matchup_id}`);
-                            if (roastEl) roastEl.textContent = aiRoast;
-                            if (labelEl) labelEl.textContent = 'The Roast (AI)';
-                        });
+                        if (pair.length >= 2) applyAIRoast(pair, false);
                     });
+
+                    contentEl.onclick = async e => {
+                        const btn = e.target.closest('.roast-regen');
+                        if (!btn) return;
+                        const pair = byId[btn.dataset.matchup];
+                        if (!pair || pair.length < 2) return;
+                        const roastEl = document.getElementById(`roast-${week}-${btn.dataset.matchup}`);
+                        const prev = roastEl.innerHTML;
+                        btn.disabled = true;
+                        roastEl.textContent = 'Berman is clearing his throat...';
+                        const ok = await applyAIRoast(pair, true);
+                        if (!ok) {
+                            roastEl.innerHTML = prev;
+                            btn.textContent = 'Try again in a minute';
+                            setTimeout(() => { btn.innerHTML = '&#8635; Re-roast'; btn.disabled = false; }, 4000);
+                            return;
+                        }
+                        btn.disabled = false;
+                    };
                 }
             }
 
